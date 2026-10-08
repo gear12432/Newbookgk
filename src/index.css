@@ -82,12 +82,12 @@
 /* Global Dark Mode Overrides */
 html.dark body,
 body.dark {
-  background-color: #0F172A;
-  color: #F8FAFC;
+  background-color: #0F172A !important;
+  color: #F8FAFC !important;
 }
 
-html.dark .bg-[#F7F9FC],
-body.dark .bg-[#F7F9FC] {
+html.dark [class*="bg-[#F7F9FC]"],
+body.dark [class*="bg-[#F7F9FC]"] {
   background-color: #0F172A !important;
 }
 
@@ -109,10 +109,10 @@ body.dark .bg-slate-100 {
   color: #F8FAFC !important;
 }
 
+html.dark [class*="text-[#14213D]"],
+body.dark [class*="text-[#14213D]"],
 html.dark .text-slate-900,
-html.dark .text-[#14213D],
-body.dark .text-slate-900,
-body.dark .text-[#14213D] {
+body.dark .text-slate-900 {
   color: #F8FAFC !important;
 }
 
