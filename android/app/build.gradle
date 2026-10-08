@@ -1,0 +1,17 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 34
+    defaultConfig {
+        applicationId "com.cashbook.mywallet"
+        minSdkVersion 22
+        targetSdkVersion 34
+        versionCode 1
+        versionName "1.0.0"
+    }
+}
+
+dependencies {
+    // Official Google Mobile Ads SDK for Android
+    implementation 'com.google.android.gms:play-services-ads:23.0.0'
+}

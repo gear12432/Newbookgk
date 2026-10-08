@@ -1,0 +1,11 @@
+{
+  "appId": "com.cashbook.mywallet",
+  "appName": "My Wallet Cash Book",
+  "webDir": "dist",
+  "bundledWebRuntime": false,
+  "plugins": {
+    "AdMob": {
+      "appId": "ca-app-pub-3435054445038272~1556671897"
+    }
+  }
+}

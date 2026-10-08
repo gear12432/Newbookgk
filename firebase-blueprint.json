@@ -1,0 +1,85 @@
+{
+  "entities": {
+    "UserProfile": {
+      "title": "UserProfile",
+      "description": "User account profile information",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "User UID" },
+        "fullName": { "type": "string", "description": "User full name" },
+        "email": { "type": "string", "description": "User email address" },
+        "mobile": { "type": "string", "description": "Mobile phone number" },
+        "profileImage": { "type": "string", "description": "URL or base64 of avatar" },
+        "status": { "type": "string", "description": "Account status" },
+        "createdAt": { "type": "number", "description": "Created timestamp" },
+        "updatedAt": { "type": "number", "description": "Updated timestamp" }
+      },
+      "required": ["uid", "fullName", "email"]
+    },
+    "UserSettings": {
+      "title": "UserSettings",
+      "description": "App preferences for user",
+      "type": "object",
+      "properties": {
+        "currency": { "type": "string" },
+        "currencySymbol": { "type": "string" },
+        "language": { "type": "string" },
+        "notificationsEnabled": { "type": "boolean" },
+        "darkMode": { "type": "boolean" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "FinancialSummary": {
+      "title": "FinancialSummary",
+      "description": "User total income, expense, balance summary",
+      "type": "object",
+      "properties": {
+        "totalIncome": { "type": "number" },
+        "totalExpense": { "type": "number" },
+        "balance": { "type": "number" },
+        "transactionCount": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      }
+    },
+    "Transaction": {
+      "title": "Transaction",
+      "description": "Financial income or expense record",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string" },
+        "uid": { "type": "string" },
+        "type": { "type": "string" },
+        "amount": { "type": "number" },
+        "categoryId": { "type": "string" },
+        "categoryName": { "type": "string" },
+        "categoryIcon": { "type": "string" },
+        "categoryColor": { "type": "string" },
+        "note": { "type": "string" },
+        "date": { "type": "string" },
+        "paymentMode": { "type": "string" },
+        "createdAt": { "type": "number" },
+        "updatedAt": { "type": "number" }
+      },
+      "required": ["id", "uid", "type", "amount", "date"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "UserProfile",
+      "description": "User profile document"
+    },
+    "/users/{userId}/settings/default": {
+      "schema": "UserSettings",
+      "description": "User settings"
+    },
+    "/users/{userId}/summary/default": {
+      "schema": "FinancialSummary",
+      "description": "User financial summary"
+    },
+    "/users/{userId}/transactions/{transactionId}": {
+      "schema": "Transaction",
+      "description": "User income/expense transaction records"
+    }
+  }
+}

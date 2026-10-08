@@ -1,0 +1,6 @@
+{
+  "name": "My Wallet - Income & Expense Tracker",
+  "description": "Mobile-first income and expense tracking application built with Firebase Authentication and Realtime Database.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
