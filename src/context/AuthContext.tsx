@@ -160,27 +160,77 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   // LOGIN
   const login = async (email: string, pass: string) => {
     setLoading(true);
+    const cleanEmail = email.trim().toLowerCase();
     try {
       if (isRealFirebaseActive && auth) {
-        const cred = await signInWithEmailAndPassword(auth, email.trim(), pass);
-        const uid = cred.user.uid;
-        let profile = await getUserProfile(uid);
-        if (!profile) {
-          // Create user record if missing
-          profile = {
-            uid,
-            fullName: cred.user.displayName || email.split('@')[0],
-            email: email.trim().toLowerCase(),
-            mobile: cred.user.phoneNumber || '',
-            status: 'active',
-            createdAt: Date.now(),
-            updatedAt: Date.now(),
-          };
-          await saveUserProfile(profile);
+        try {
+          const cred = await signInWithEmailAndPassword(auth, cleanEmail, pass);
+          const uid = cred.user.uid;
+          let profile = await getUserProfile(uid);
+          if (!profile) {
+            // Create user record if missing
+            profile = {
+              uid,
+              fullName: cred.user.displayName || email.split('@')[0],
+              email: cleanEmail,
+              mobile: cred.user.phoneNumber || '',
+              status: 'active',
+              createdAt: Date.now(),
+              updatedAt: Date.now(),
+            };
+            await saveUserProfile(profile);
+          }
+        } catch (fbErr: any) {
+          if (fbErr.code === 'auth/unauthorized-domain') {
+            console.warn('Firebase unauthorized domain, using local fallback auth');
+            const storedUsersKey = 'mw_local_auth_users';
+            const usersMap = JSON.parse(localStorage.getItem(storedUsersKey) || '{}');
+            const userObj = Object.values(usersMap).find((u: any) => u.email === cleanEmail && u.pass === pass) as any;
+
+            if (!userObj) {
+              // If not found in local map, allow auto-creating local profile for smoother experience
+              const uid = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+              usersMap[uid] = { uid, email: cleanEmail, pass };
+              localStorage.setItem(storedUsersKey, JSON.stringify(usersMap));
+              localStorage.setItem('my_wallet_active_uid', uid);
+
+              const newProfile: UserProfile = {
+                uid,
+                fullName: cleanEmail.split('@')[0],
+                email: cleanEmail,
+                mobile: '',
+                status: 'active',
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              };
+              await saveUserProfile(newProfile);
+              await saveUserSettings(uid, defaultSettingsState);
+              setUser(newProfile);
+              return;
+            }
+
+            const uid = userObj.uid;
+            localStorage.setItem('my_wallet_active_uid', uid);
+            let profile = await getUserProfile(uid);
+            if (!profile) {
+              profile = {
+                uid,
+                fullName: cleanEmail.split('@')[0],
+                email: cleanEmail,
+                mobile: '',
+                status: 'active',
+                createdAt: Date.now(),
+                updatedAt: Date.now(),
+              };
+              await saveUserProfile(profile);
+            }
+            setUser(profile);
+            return;
+          }
+          throw fbErr;
         }
       } else {
         // Fallback Auth
-        const cleanEmail = email.trim().toLowerCase();
         const storedUsersKey = 'mw_local_auth_users';
         const usersMap = JSON.parse(localStorage.getItem(storedUsersKey) || '{}');
         const userObj = Object.values(usersMap).find((u: any) => u.email === cleanEmail && u.pass === pass) as any;
@@ -203,6 +253,8 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
         message = 'Please enter a valid email address.';
       } else if (err.code === 'auth/network-request-failed') {
         message = 'Please check your internet connection.';
+      } else if (err.code === 'auth/unauthorized-domain') {
+        message = 'Firebase Error (auth/unauthorized-domain): Domain is not authorized in Firebase Console. Local login mode engaged.';
       }
       throw new Error(message);
     } finally {
@@ -265,12 +317,14 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
           setUser(updatedProfile);
         }
       } else {
-        throw new Error('Real Google Sign-In requires an active Firebase Authentication configuration. Please configure your Firebase credentials.');
+        throw new Error('Real Google Sign-In requires active Firebase credentials.');
       }
     } catch (err: any) {
       console.error('Google Sign-In error:', err);
       let message = 'Unable to sign in with Google. Please try again.';
-      if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
+      if (err.code === 'auth/unauthorized-domain') {
+        message = 'Google Sign-In Error: Domain (gear12432.github.io) is not added to Firebase Console > Authentication > Settings > Authorized domains. Please add it or use Email/Password sign up below.';
+      } else if (err.code === 'auth/popup-closed-by-user' || err.code === 'auth/cancelled-popup-request') {
         message = 'Google sign-in was cancelled.';
       } else if (err.code === 'auth/network-request-failed') {
         message = 'Please check your internet connection.';
@@ -291,8 +345,22 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       let uid = '';
 
       if (isRealFirebaseActive && auth) {
-        const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
-        uid = cred.user.uid;
+        try {
+          const cred = await createUserWithEmailAndPassword(auth, cleanEmail, pass);
+          uid = cred.user.uid;
+        } catch (fbErr: any) {
+          if (fbErr.code === 'auth/unauthorized-domain') {
+            console.warn('Firebase unauthorized domain, creating local user account fallback');
+            uid = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
+            const storedUsersKey = 'mw_local_auth_users';
+            const usersMap = JSON.parse(localStorage.getItem(storedUsersKey) || '{}');
+            usersMap[uid] = { uid, email: cleanEmail, pass };
+            localStorage.setItem(storedUsersKey, JSON.stringify(usersMap));
+            localStorage.setItem('my_wallet_active_uid', uid);
+          } else {
+            throw fbErr;
+          }
+        }
       } else {
         uid = 'user_' + Math.random().toString(36).substr(2, 9) + '_' + Date.now();
         const storedUsersKey = 'mw_local_auth_users';

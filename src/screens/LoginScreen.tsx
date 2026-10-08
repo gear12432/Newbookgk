@@ -77,8 +77,13 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ onNavigate, onSuccess 
 
         {/* Inline Error Message */}
         {errorMessage && (
-          <div className="mb-4 p-3.5 bg-rose-50 border border-rose-200 text-[#E91E63] text-xs font-semibold rounded-2xl animate-fade-in">
+          <div className="mb-4 p-3.5 bg-rose-50 border border-rose-200 text-[#E91E63] text-xs font-semibold rounded-2xl animate-fade-in leading-relaxed">
             {errorMessage}
+            {errorMessage.includes('unauthorized-domain') && (
+              <div className="mt-2 text-[11px] text-slate-600 bg-white/80 p-2.5 rounded-xl border border-rose-100 font-normal">
+                <strong>Fix in Firebase Console:</strong> Go to Firebase Console &gt; Authentication &gt; Settings &gt; Authorized domains &gt; Add domain: <code className="bg-slate-100 px-1 py-0.5 rounded font-mono font-bold text-slate-800">gear12432.github.io</code>
+              </div>
+            )}
           </div>
         )}
 
